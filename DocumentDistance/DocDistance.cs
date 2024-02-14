@@ -24,53 +24,24 @@ namespace DocumentDistance
         /// <returns>The angle (in degree) between the 2 documents</returns>
         /// 
 
-        
-
-        //public static double CalculateDistance(string doc1FilePath, string doc2FilePath)
-        //{
-        //    // TODO comment the following line THEN fill your code here
-        //    //throw new NotImplementedException();
-
-        //    Dictionary<string, int> file1;
-        //    Dictionary<string, int> file2;
-
-        //    using (StreamReader streamReader = File.OpenText(doc1FilePath))
-        //    {
-        //        string text = streamReader.ReadToEnd();
-        //        file1 = CountWordFrequencies(text);
-
-        //    }
-
-        //    using (StreamReader streamReader = File.OpenText(doc2FilePath))
-        //    {
-        //        string text = streamReader.ReadToEnd();
-        //        file2 = CountWordFrequencies(text);
-
-        //    }
-
-
-
-
-        //    return 0.0;
-        //}
-
         public static double CalculateDistance(string document1, string document2)
         {
             // Preprocess documents (lowercase, alphanumeric only, split by non-alphanumeric)
 
             // First File:
-            Dictionary<string, int> tokens1 = new Dictionary<string, int> { };
+            Dictionary<string, long> tokens1 = new Dictionary<string, long> { };
             long sum1 = 0;
             double length1 = 0;
 
             // Second File:
-            Dictionary<string, int> tokens2 = new Dictionary<string, int> { };
+            Dictionary<string, long> tokens2 = new Dictionary<string, long> { };
             long sum2 = 0;
             double length2 = 0;
 
 
             // General:
             double dotProduct = 0;
+            double angle = 0;
             Task[] tasks = new Task[2];
 
 
@@ -87,7 +58,7 @@ namespace DocumentDistance
 
             Task.WaitAll(tasks);
 
-            dotProduct = tokens1.Sum(kv => kv.Value * GetValueOrDefault(tokens2, kv.Key));
+            dotProduct = tokens1.Sum(kv => (kv.Value * (tokens2.ContainsKey(kv.Key) ? tokens2[kv.Key] : 0)));
 
             //var (tokens1, sum1) = CreateFrequencyDict(document1);
             //var (tokens2, sum2) = CreateFrequencyDict(document2);
@@ -123,7 +94,6 @@ namespace DocumentDistance
             // Clamp similarity within the valid range [-1, 1]
             //similarity = Math.Max(-1, Math.Min(1, similarity));
 
-            double angle = 0;
 
             if (similarity >= 1)
             {
@@ -167,7 +137,7 @@ namespace DocumentDistance
             return dict.ContainsKey(key) ? dict[key] : 0;
         }
 
-        private static (Dictionary<string, int>, long) CreateFrequencyDict(string filePath)
+        private static (Dictionary<string, long>, long) CreateFrequencyDict(string filePath)
         {
             // Read the file content
             string document = File.ReadAllText(filePath);
@@ -201,7 +171,7 @@ namespace DocumentDistance
 
 
             //int flag = 0;
-            Dictionary<string, int> dict = new Dictionary<string, int>();
+            Dictionary<string, long> dict = new Dictionary<string, long> { };
             StringBuilder tokenBuilder = new StringBuilder();
             long sum = 0;
 
@@ -214,7 +184,7 @@ namespace DocumentDistance
                 else if (tokenBuilder.Length > 0)
                 {
                     string token = tokenBuilder.ToString();
-                    if (!dict.TryGetValue(token, out int count))
+                    if (!dict.TryGetValue(token, out long count))
                     {
                         dict[token] = 1;
                         sum += 1;
@@ -243,7 +213,7 @@ namespace DocumentDistance
             if (tokenBuilder.Length > 0)
             {
                 string token = tokenBuilder.ToString();
-                if (!dict.TryGetValue(token, out int count))
+                if (!dict.TryGetValue(token, out long count))
                 {
                     dict[token] = 1;
                     sum++;
