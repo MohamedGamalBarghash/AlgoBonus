@@ -57,8 +57,40 @@ namespace DocumentDistance
         public static double CalculateDistance(string document1, string document2)
         {
             // Preprocess documents (lowercase, alphanumeric only, split by non-alphanumeric)
-            var (tokens1, sum1) = CreateFrequencyDict(document1);
-            var (tokens2, sum2) = CreateFrequencyDict(document2);
+
+            // First File:
+            Dictionary<string, int> tokens1 = new Dictionary<string, int> { };
+            long sum1 = 0;
+            double length1 = 0;
+
+            // Second File:
+            Dictionary<string, int> tokens2 = new Dictionary<string, int> { };
+            long sum2 = 0;
+            double length2 = 0;
+
+
+            // General:
+            double dotProduct = 0;
+            Task[] tasks = new Task[2];
+
+
+            tasks[0] = Task.Run(() => { 
+                (tokens1, sum1) = CreateFrequencyDict(document1);
+                length1 = tokens1.Values.Sum(v => (long)v * v);
+                length1 = Math.Sqrt(length1);
+            });
+            tasks[1] = Task.Run(() => { 
+                (tokens2, sum2) = CreateFrequencyDict(document2);
+                length2 = tokens2.Values.Sum(v => (long)v * v);
+                length2 = Math.Sqrt(length2);
+            });
+
+            Task.WaitAll(tasks);
+
+            dotProduct = tokens1.Sum(kv => kv.Value * GetValueOrDefault(tokens2, kv.Key));
+
+            //var (tokens1, sum1) = CreateFrequencyDict(document1);
+            //var (tokens2, sum2) = CreateFrequencyDict(document2);
 
             //foreach (KeyValuePair<string, int> pair in tf1)
             //{
@@ -71,20 +103,14 @@ namespace DocumentDistance
             //}
 
             // Calculate dot product (sum of product of corresponding TF values)
-            double dotProduct = tokens1.Sum(kv => kv.Value * GetValueOrDefault(tokens2, kv.Key));
 
             // Calculate document lengths (Euclidean norm of TF vectors)
-            double length1 = tokens1.Values.Sum(v => (long)v * v);
-            double length2 = tokens2.Values.Sum(v => (long)v * v);
 
             //Console.WriteLine("Length1: " + length1);
             //Console.WriteLine("Length2: " + length2);
 
             //Console.WriteLine("Sum1: " + sum1);
             //Console.WriteLine("Sum2: " + sum2);
-
-            length1 = Math.Sqrt(length1);
-            length2 = Math.Sqrt(length2);
 
             //int len = Math.Max(tokens1.Count, tokens2.Count);
 
@@ -269,11 +295,7 @@ namespace DocumentDistance
 
             //return tokenser.ToArray();
             return (dict, sum);
-        }
-
-        static bool IsNonAlphanumeric(char c)
-        {
-            return !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'));
+            //return dict;
         }
 
         //private static bool IsAWord (string word)
