@@ -57,8 +57,8 @@ namespace DocumentDistance
         public static double CalculateDistance(string document1, string document2)
         {
             // Preprocess documents (lowercase, alphanumeric only, split by non-alphanumeric)
-            Dictionary<string,int> tokens1 = CreateFrequencyDict(document1);
-            Dictionary<string, int> tokens2 = CreateFrequencyDict(document2);
+            var (tokens1, sum1) = CreateFrequencyDict(document1);
+            var (tokens2, sum2) = CreateFrequencyDict(document2);
 
             //foreach (KeyValuePair<string, int> pair in tf1)
             //{
@@ -141,7 +141,7 @@ namespace DocumentDistance
             return dict.ContainsKey(key) ? dict[key] : 0;
         }
 
-        private static Dictionary<string, int> CreateFrequencyDict(string filePath)
+        private static (Dictionary<string, int>, long) CreateFrequencyDict(string filePath)
         {
             // Read the file content
             string document = File.ReadAllText(filePath);
@@ -177,6 +177,7 @@ namespace DocumentDistance
             //int flag = 0;
             Dictionary<string, int> dict = new Dictionary<string, int>();
             StringBuilder tokenBuilder = new StringBuilder();
+            long sum = 0;
 
             foreach (char c in document.ToLower())
             {
@@ -190,16 +191,22 @@ namespace DocumentDistance
                     if (!dict.TryGetValue(token, out int count))
                     {
                         dict[token] = 1;
+                        sum += 1;
                     }
                     else
                     {
-                        if (count + 1 >= 100000)
+                        if (count + 1 > 100000)
                         {
                             dict[token] = 100000;
+                        } else if (count + 1 == 100000)
+                        {
+                            dict[token] = 100000;
+                            sum++;
                         }
                         else
                         {
                             dict[token] = count + 1;
+                            sum ++;
                         }   
                         //dict[token] = Math.Min(count + 1, 100000);
                     }
@@ -213,6 +220,7 @@ namespace DocumentDistance
                 if (!dict.TryGetValue(token, out int count))
                 {
                     dict[token] = 1;
+                    sum++;
                 }
                 else
                 {
@@ -223,6 +231,7 @@ namespace DocumentDistance
                     else
                     {
                         dict[token] = count + 1;
+                        sum++;
                     }
                 }
             }
@@ -259,7 +268,7 @@ namespace DocumentDistance
 
 
             //return tokenser.ToArray();
-            return dict;
+            return (dict, sum);
         }
 
         static bool IsNonAlphanumeric(char c)
