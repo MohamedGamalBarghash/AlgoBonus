@@ -24,12 +24,12 @@ namespace DocumentDistance
         /// <returns>The angle (in degree) between the 2 documents</returns>
         /// 
 
-        public static double CalculateDistance(string document1, string document2)
+        public static double CalculateDistance(string doc1FilePath, string doc2FilePath)
         {
-            // Preprocess documents (lowercase, alphanumeric only, split by non-alphanumeric)
+            // TODO comment the following line THEN fill your code here
+            //throw new NotImplementedException
 
-
-            if (document1 == document2)
+            if (doc1FilePath == doc2FilePath)
             {
                 return 0;
             }
@@ -50,18 +50,18 @@ namespace DocumentDistance
 
 
             tasks[0] = Task.Run(() => { 
-                tokens1 = CreateFrequencyDict(document1);
-                //length1 = tokens1.Values.Sum(v => v < 100000 ? (long)v * v : 100000);
-                foreach (var value in tokens1.Values)
-                    length1 += (long)value * value;
-                length1 = Math.Sqrt(length1);
+                tokens1 = CreateFrequencyDict(doc1FilePath);
+                length1 = Math.Sqrt(tokens1.Values.Sum(v => v * v));
+                //foreach (var value in tokens1.Values)
+                //    length1 += (long)value * value;
+                //length1 = Math.Sqrt(length1);
             });
             tasks[1] = Task.Run(() => { 
-                tokens2 = CreateFrequencyDict(document2);
-                //length2 = tokens2.Values.Sum(v => v < 100000 ? (long)v * v : 100000);
-                foreach (var value in tokens2.Values)
-                    length2 += (long)value * value;
-                length2 = Math.Sqrt(length2);
+                tokens2 = CreateFrequencyDict(doc2FilePath);
+                length2 = Math.Sqrt(tokens2.Values.Sum(v => v * v));
+                //foreach (var value in tokens2.Values)
+                //    length2 += (long)value * value;
+                //length2 = Math.Sqrt(length2);
             });
 
             Task.WaitAll(tasks);
@@ -81,10 +81,6 @@ namespace DocumentDistance
             //{
             //    Console.WriteLine($"Key: {pair.Key}, Value: {pair.Value}");
             //}
-
-            // Calculate dot product (sum of product of corresponding TF values)
-
-            // Calculate document lengths (Euclidean norm of TF vectors)
 
             //Console.WriteLine("Length1: " + length1);
             //Console.WriteLine("Length2: " + length2);
@@ -120,12 +116,8 @@ namespace DocumentDistance
             return angle;
 
 
-            // Convert similarity to distance (1 - similarity)
-            //return 1 - similarity;
         }
 
-        // Helper functions for preprocessing, building dictionaries, and handling missing values
-        // ...
 
         //private static Dictionary<string, int> BuildTfDictionary(string[] tokens, int maxFreq)
         //{
@@ -143,7 +135,7 @@ namespace DocumentDistance
         //    return dict.ContainsKey(key) ? dict[key] : 0;
         //}
 
-        private static /*(*/Dictionary<string, long>/*, long)*/ CreateFrequencyDict(string filePath)
+        private static/*(*/Dictionary<string, long>/*, long)*/ CreateFrequencyDict(string filePath)
         {
             // Read the file content
             string document = File.ReadAllText(filePath).ToLower();
@@ -177,8 +169,8 @@ namespace DocumentDistance
 
             Dictionary<string, long> dict = new Dictionary<string, long> { };
 
-            int start = -1; // Start index of the current token
-            bool inToken = false; // Flag to track if currently inside a token
+            int start = -1;
+            bool inToken = false;
 
             for (int i = 0; i < document.Length; i++)
             {
@@ -220,7 +212,6 @@ namespace DocumentDistance
                 }
             }
 
-            // Process the last token if the document ends with a token
             if (inToken)
             {
                 string token = document.Substring(start);
