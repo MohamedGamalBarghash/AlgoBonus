@@ -67,6 +67,7 @@ namespace DocumentDistance
             Task.WaitAll(tasks);
 
             dotProduct = tokens1.Sum(kv => (kv.Value * (tokens2.ContainsKey(kv.Key) ? tokens2[kv.Key] : 0)));
+            //dotProduct = tokens1.Sum(kv => (kv.Value * GetValueOrDefault(tokens2, kv.Key)));
 
             //var (tokens1, sum1) = CreateFrequencyDict(document1);
             //var (tokens2, sum2) = CreateFrequencyDict(document2);
@@ -137,15 +138,44 @@ namespace DocumentDistance
         //    return dict;
         //}
 
-        private static long GetValueOrDefault(Dictionary<string, int> dict, string key)
-        {
-            return dict.ContainsKey(key) ? dict[key] : 0;
-        }
+        //private static long GetValueOrDefault(Dictionary<string, long> dict, string key)
+        //{
+        //    return dict.ContainsKey(key) ? dict[key] : 0;
+        //}
 
-        private static Dictionary<string, long> CreateFrequencyDict(string filePath)
+        private static /*(*/Dictionary<string, long>/*, long)*/ CreateFrequencyDict(string filePath)
         {
-            var dict = new Dictionary<string, long>();
+            // Read the file content
             string document = File.ReadAllText(filePath).ToLower();
+
+            //char[] delimiters = { ' ', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '?', '\v', '\t', '\r', '\f', '\b', '\a', '\0' };
+
+            //string[] tokens = document.ToLower().Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+            //                      .Where(word => IsAlphaNumeric(word))
+            //                      .ToArray();
+            //document = document.Replace("=", "");
+
+            // Convert to lowercase and split into words
+            //var tokens = Regex.Split(document.ToLower(), @"[^a-z0-9]+");
+
+            //Console.WriteLine(tokens.Length);
+
+            //string result = Regex.Replace(document, @"[^a-zA-Z0-9]+", m => m.Value[0].ToString());
+            //string[] tokens = result.ToLower().Split(new char[] { ' ', '?', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '`', '|', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '\v', '\t', '\r', '\f', '\b', '\a', '\0' }, StringSplitOptions.RemoveEmptyEntries);
+            //var tokenser = tokens.Select(token => token.Trim());
+
+            //string[] filteredArray = tokens.Where(s => !string.IsNullOrWhiteSpace(s) && s.All(char.IsLetterOrDigit))
+            //                        .ToArray();
+
+
+            //Console.WriteLine(tokens.Length);
+
+            //foreach (string token in tokens)
+            //{
+            //    Console.WriteLine("- "+token);
+            //}
+
+            Dictionary<string, long> dict = new Dictionary<string, long> { };
 
             int start = -1; // Start index of the current token
             bool inToken = false; // Flag to track if currently inside a token
@@ -170,6 +200,7 @@ namespace DocumentDistance
                         if (!dict.TryGetValue(token, out long count))
                         {
                             dict[token] = 1;
+                            // sum++;
                         }
                         else
                         {
@@ -180,9 +211,11 @@ namespace DocumentDistance
                             else
                             {
                                 dict[token] = count + 1;
+                                // sum++;
                             }
-                        }
-                        inToken = false;
+                        //dict[token] = Math.Min(count + 1, 100000);
+                    }
+                    inToken = false;
                     }
                 }
             }
@@ -205,11 +238,44 @@ namespace DocumentDistance
                     {
                         dict[token] = count + 1;
                     }
+                //dict[token] = Math.Min(count + 1, 100000);
                 }
             }
 
+            // Now 'dict' contains the counts of each alphanumeric word in the document.
+
+
+            // Now 'dict' contains the counts of each alphanumeric word in the document.
+
+
+            // Now the 'dict' dictionary contains the counts of each alphanumeric word in the document.
+
+
+            //foreach (string token in tokens)
+            //{
+            //    if (!token.All(Char.IsLetterOrDigit))
+            //    {
+            //        Console.WriteLine(token);
+            //    }
+            //}
+
+            //foreach (KeyValuePair<string, int> pair in dict)
+            //{
+            //    Console.WriteLine($"Key: {pair.Key}, Value: {pair.Value}");
+            //}
+            //Console.WriteLine("--------------------------------------------------------------------");
+            //Console.WriteLine("\n"+flag+"\n");
+
+
+            //string finalResult = result.ToString();
+
+            //string[] tokens = finalResult.Split(new char[] { ' ', '?', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '`', '|', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '\v', '\t', '\r', '\f', '\b', '\a', '\0' }, StringSplitOptions.RemoveEmptyEntries);
+
+
+
+            //return tokenser.ToArray();
+            //return (dict, sum);
             return dict;
         }
-
     }
 }
