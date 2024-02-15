@@ -36,37 +36,36 @@ namespace DocumentDistance
 
             // First File:
             Dictionary<string, long> tokens1 = new Dictionary<string, long> { };
-            double length1 = 0;
+            double l1 = 0;
 
             // Second File:
             Dictionary<string, long> tokens2 = new Dictionary<string, long> { };
-            double length2 = 0;
+            double l2 = 0;
 
 
             // General:
-            double dotProduct = 0;
-            double angle = 0;
+            //double dotProduct = 0;
             Task[] tasks = new Task[2];
 
 
             tasks[0] = Task.Run(() => { 
                 tokens1 = CreateFrequencyDict(doc1FilePath);
-                length1 = Math.Sqrt(tokens1.Values.Sum(v => v * v));
+                l1 = Math.Sqrt(tokens1.Values.Sum(v => v * v));
                 //foreach (var value in tokens1.Values)
-                //    length1 += (long)value * value;
-                //length1 = Math.Sqrt(length1);
+                //    l1 += (long)value * value;
+                //l1 = Math.Sqrt(l1);
             });
             tasks[1] = Task.Run(() => { 
                 tokens2 = CreateFrequencyDict(doc2FilePath);
-                length2 = Math.Sqrt(tokens2.Values.Sum(v => v * v));
+                l2 = Math.Sqrt(tokens2.Values.Sum(v => v * v));
                 //foreach (var value in tokens2.Values)
-                //    length2 += (long)value * value;
-                //length2 = Math.Sqrt(length2);
+                //    l2 += (long)value * value;
+                //l2 = Math.Sqrt(l2);
             });
 
             Task.WaitAll(tasks);
 
-            dotProduct = tokens1.Sum(kv => (kv.Value * (tokens2.ContainsKey(kv.Key) ? tokens2[kv.Key] : 0)));
+            double dotProduct = tokens1.Sum(kv => (kv.Value * (tokens2.ContainsKey(kv.Key) ? tokens2[kv.Key] : 0)));
             //dotProduct = tokens1.Sum(kv => (kv.Value * GetValueOrDefault(tokens2, kv.Key)));
 
             //var (tokens1, sum1) = CreateFrequencyDict(document1);
@@ -82,28 +81,23 @@ namespace DocumentDistance
             //    Console.WriteLine($"Key: {pair.Key}, Value: {pair.Value}");
             //}
 
-            //Console.WriteLine("Length1: " + length1);
-            //Console.WriteLine("Length2: " + length2);
+            //Console.WriteLine("l1: " + l1);
+            //Console.WriteLine("l2: " + l2);
 
             //Console.WriteLine("Sum1: " + sum1);
             //Console.WriteLine("Sum2: " + sum2);
 
             //int len = Math.Max(tokens1.Count, tokens2.Count);
 
-            //length1 = Math.Sqrt(sum1);
-            //length2 = Math.Sqrt(sum2);
+            //l1 = Math.Sqrt(sum1);
+            //l2 = Math.Sqrt(sum2);
 
-            //double similarity = dotProduct / (length1 * length2);
-            double similarity = dotProduct / (length1 * length2);
-
-            // Clamp similarity within the valid range [-1, 1]
-            //similarity = Math.Max(-1, Math.Min(1, similarity));
+            //double similarity = dotProduct / (l1 * l2);
+            double similarity = dotProduct / (l1 * l2);
 
 
-            if (similarity >= 1 || similarity <= -1)
-            {
-                angle = 0;
-            } else
+            double angle = 0;
+            if ((similarity < 1 && similarity > -1))
             {
                 // Calculate angle in radians
                 angle = Math.Acos(similarity);
@@ -137,7 +131,6 @@ namespace DocumentDistance
 
         private static/*(*/Dictionary<string, long>/*, long)*/ CreateFrequencyDict(string filePath)
         {
-            // Read the file content
             string document = File.ReadAllText(filePath).ToLower();
 
             //char[] delimiters = { ' ', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '?', '\v', '\t', '\r', '\f', '\b', '\a', '\0' };
@@ -147,7 +140,6 @@ namespace DocumentDistance
             //                      .ToArray();
             //document = document.Replace("=", "");
 
-            // Convert to lowercase and split into words
             //var tokens = Regex.Split(document.ToLower(), @"[^a-z0-9]+");
 
             //Console.WriteLine(tokens.Length);
@@ -232,15 +224,6 @@ namespace DocumentDistance
                 //dict[token] = Math.Min(count + 1, 100000);
                 }
             }
-
-            // Now 'dict' contains the counts of each alphanumeric word in the document.
-
-
-            // Now 'dict' contains the counts of each alphanumeric word in the document.
-
-
-            // Now the 'dict' dictionary contains the counts of each alphanumeric word in the document.
-
 
             //foreach (string token in tokens)
             //{
