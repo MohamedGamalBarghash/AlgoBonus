@@ -28,6 +28,12 @@ namespace DocumentDistance
         {
             // Preprocess documents (lowercase, alphanumeric only, split by non-alphanumeric)
 
+
+            if (document1 == document2)
+            {
+                return 0;
+            }
+
             // First File:
             Dictionary<string, long> tokens1 = new Dictionary<string, long> { };
             long sum1 = 0;
@@ -47,12 +53,12 @@ namespace DocumentDistance
 
             tasks[0] = Task.Run(() => { 
                 (tokens1, sum1) = CreateFrequencyDict(document1);
-                length1 = tokens1.Values.Sum(v => (long)v * v);
+                length1 = tokens1.Values.Sum(v => v < 100000 ? (long)v * v : 100000);
                 length1 = Math.Sqrt(length1);
             });
             tasks[1] = Task.Run(() => { 
                 (tokens2, sum2) = CreateFrequencyDict(document2);
-                length2 = tokens2.Values.Sum(v => (long)v * v);
+                length2 = tokens2.Values.Sum(v => v < 100000 ? (long)v * v : 100000);
                 length2 = Math.Sqrt(length2);
             });
 
@@ -220,9 +226,14 @@ namespace DocumentDistance
                 }
                 else
                 {
-                    if (count + 1 >= 100000)
+                    if (count + 1 > 100000)
                     {
                         dict[token] = 100000;
+                    }
+                    else if (count + 1 == 100000)
+                    {
+                        dict[token] = 100000;
+                        sum++;
                     }
                     else
                     {
