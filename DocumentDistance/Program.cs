@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace DocumentDistance
+namespace docDistance
 {
     class Program
     {
@@ -13,7 +13,7 @@ namespace DocumentDistance
             double actualResult;
             StreamReader sr;
             TextReader origConsole = Console.In;
-            Console.WriteLine("Document Distance:\n[1] Sample test cases\n[2] Complete testing\n");
+            Console.WriteLine("doc Distance:\n[1] Sample test cases\n[2] Complete testing\n");
             Console.Write("\nEnter your choice [1-2]: ");
             char choice = (char)Console.ReadLine()[0];
             switch (choice)
@@ -26,15 +26,15 @@ namespace DocumentDistance
                     nCases = int.Parse(Console.ReadLine());
                     for (int i = 0; i < nCases; i++)
                     {
-                        string D1FilePath = Console.ReadLine();
-                        string D2FilePath = Console.ReadLine();
+                        string D1path = Console.ReadLine();
+                        string D2path = Console.ReadLine();
                         
                         Console.Write("Case " + (i + 1).ToString() + ": ");
 
                         List<int> car1_items = new List<int>();
                         List<int> car2_items = new List<int>();
                         Stopwatch sw = Stopwatch.StartNew();
-                        actualResult = DocDistance.CalculateDistance(D1FilePath, D2FilePath);
+                        actualResult = DocDistance.CalculateDistance(D1path, D2path);
                         sw.Stop();
 
                         double expectedResult = double.Parse(Console.ReadLine());
@@ -77,15 +77,15 @@ namespace DocumentDistance
                     
                     for (int i = 0; i < nCases; i++)
                     {
-                        string D1FilePath = Console.ReadLine();
-                        string D2FilePath = Console.ReadLine();
+                        string D1path = Console.ReadLine();
+                        string D2path = Console.ReadLine();
 
                         Console.Write("Case " + (i + 1).ToString() + ": ");
 
                         List<int> car1_items = new List<int>();
                         List<int> car2_items = new List<int>();
                         Stopwatch sw = Stopwatch.StartNew();
-                        actualResult = DocDistance.CalculateDistance(D1FilePath, D2FilePath);
+                        actualResult = DocDistance.CalculateDistance(D1path, D2path);
                         sw.Stop();
                         if (sw.ElapsedMilliseconds > maxTime)
                             maxTime = sw.ElapsedMilliseconds;

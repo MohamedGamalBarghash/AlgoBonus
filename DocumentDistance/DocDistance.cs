@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace DocumentDistance
+namespace docDistance
 {
     class DocDistance
     {
@@ -17,19 +17,19 @@ namespace DocumentDistance
         // YOU CAN ADD FUNCTIONS IF YOU NEED TO
         // *****************************************
         /// <summary>
-        /// Write an efficient algorithm to calculate the distance between two documents
+        /// Write an efficient algorithm to calculate the distance between two docs
         /// </summary>
-        /// <param name="doc1FilePath">File path of 1st document</param>
-        /// <param name="doc2FilePath">File path of 2nd document</param>
-        /// <returns>The angle (in degree) between the 2 documents</returns>
+        /// <param name="doc1path">File path of 1st doc</param>
+        /// <param name="doc2path">File path of 2nd doc</param>
+        /// <returns>The angle (in degree) between the 2 docs</returns>
         /// 
 
-        public static double CalculateDistance(string doc1FilePath, string doc2FilePath)
+        public static double CalculateDistance(string doc1path, string doc2path)
         {
             // TODO comment the following line THEN fill your code here
             //throw new NotImplementedException
 
-            if (doc1FilePath == doc2FilePath)
+            if (doc1path == doc2path)
             {
                 return 0;
             }
@@ -48,18 +48,20 @@ namespace DocumentDistance
             Task[] tasks = new Task[2];
 
 
+
             tasks[0] = Task.Run(() => { 
-                tokens1 = CreateFrequencyDict(doc1FilePath);
+                //tokens1 = CreateFrequencyDict(doc1path);
+                tokens1 = CreateFrequencyDict(doc1path);
                 l1 = Math.Sqrt(tokens1.Values.Sum(v => v * v));
                 //foreach (var value in tokens1.Values)
-                //    l1 += (long)value * value;
+                //l1 += (long)value * value;
                 //l1 = Math.Sqrt(l1);
             });
             tasks[1] = Task.Run(() => { 
-                tokens2 = CreateFrequencyDict(doc2FilePath);
+                tokens2 = CreateFrequencyDict(doc2path);
                 l2 = Math.Sqrt(tokens2.Values.Sum(v => v * v));
                 //foreach (var value in tokens2.Values)
-                //    l2 += (long)value * value;
+                //l2 += (long)value * value;
                 //l2 = Math.Sqrt(l2);
             });
 
@@ -68,8 +70,8 @@ namespace DocumentDistance
             double dotProduct = tokens1.Sum(kv => (kv.Value * (tokens2.ContainsKey(kv.Key) ? tokens2[kv.Key] : 0)));
             //dotProduct = tokens1.Sum(kv => (kv.Value * GetValueOrDefault(tokens2, kv.Key)));
 
-            //var (tokens1, sum1) = CreateFrequencyDict(document1);
-            //var (tokens2, sum2) = CreateFrequencyDict(document2);
+            //var (tokens1, sum1) = CreateFrequencyDict(doc1);
+            //var (tokens2, sum2) = CreateFrequencyDict(doc2);
 
             //foreach (KeyValuePair<string, int> pair in tf1)
             //{
@@ -129,44 +131,77 @@ namespace DocumentDistance
         //    return dict.ContainsKey(key) ? dict[key] : 0;
         //}
 
-        private static/*(*/Dictionary<string, long>/*, long)*/ CreateFrequencyDict(string filePath)
+
+        // Main Process
+        static Dictionary<string, long> CreateFrequencyDict(string path)
         {
-            string document = File.ReadAllText(filePath).ToLower();
+            string doc = File.ReadAllText(path).ToLower();
 
-            //char[] delimiters = { ' ', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '?', '\v', '\t', '\r', '\f', '\b', '\a', '\0' };
+            Dictionary<string, long> dict = new Dictionary<string, long>();
 
-            //string[] tokens = document.ToLower().Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
-            //                      .Where(word => IsAlphaNumeric(word))
-            //                      .ToArray();
-            //document = document.Replace("=", "");
+            if (doc.Length > 3000)
+            {
+                string[] pieces = SplitFile(doc, 7);
 
-            //var tokens = Regex.Split(document.ToLower(), @"[^a-z0-9]+");
+                Task<Dictionary<string, long>>[] tasks = new Task<Dictionary<string, long>>[pieces.Length];
+                for (int i = 0; i < pieces.Length; i++)
+                {
+                    int index = i; // capture the loop variable
+                    tasks[i] = Task.Run(() => ProcessP(pieces[index]));
+                }
 
-            //Console.WriteLine(tokens.Length);
+                // Wait for all tasks to complete
+                Task.WaitAll(tasks);
 
-            //string result = Regex.Replace(document, @"[^a-zA-Z0-9]+", m => m.Value[0].ToString());
-            //string[] tokens = result.ToLower().Split(new char[] { ' ', '?', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '`', '|', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '\v', '\t', '\r', '\f', '\b', '\a', '\0' }, StringSplitOptions.RemoveEmptyEntries);
-            //var tokenser = tokens.Select(token => token.Trim());
+                foreach (var task in tasks)
+                {
+                    foreach (var kvp in task.Result)
+                    {
+                        if (dict.TryGetValue(kvp.Key, out long existingValue))
+                        {
+                            dict[kvp.Key] = existingValue + kvp.Value;
+                        }
+                        else
+                        {
+                            dict[kvp.Key] = kvp.Value;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                dict = ProcessP(doc);
+            }
 
-            //string[] filteredArray = tokens.Where(s => !string.IsNullOrWhiteSpace(s) && s.All(char.IsLetterOrDigit))
-            //                        .ToArray();
+            return dict;
+        }
 
 
-            //Console.WriteLine(tokens.Length);
+        // Split file into pieces
+        private static string[] SplitFile(string doc, int pieces)
+        {
+            List<string> result = new List<string>();
+            int pieceLength = (int)Math.Ceiling((double)doc.Length / pieces);
+            for (int i = 0; i < doc.Length; i += pieceLength)
+            {
+                int length = Math.Min(pieceLength, doc.Length - i);
+                result.Add(doc.Substring(i, length));
+            }
+            return result.ToArray();
+        }
 
-            //foreach (string token in tokens)
-            //{
-            //    Console.WriteLine("- "+token);
-            //}
 
-            Dictionary<string, long> dict = new Dictionary<string, long> { };
+        // Process a single piece
+        private static Dictionary<string, long> ProcessP(string piece)
+        {
+            Dictionary<string, long> dict = new Dictionary<string, long>();
 
             int start = -1;
             bool inToken = false;
 
-            for (int i = 0; i < document.Length; i++)
+            for (int i = 0; i < piece.Length; i++)
             {
-                char c = document[i];
+                char c = piece[i];
 
                 if (char.IsLetterOrDigit(c))
                 {
@@ -180,75 +215,33 @@ namespace DocumentDistance
                 {
                     if (inToken)
                     {
-                        string token = document.Substring(start, i - start);
+                        string token = piece.Substring(start, i - start);
                         if (!dict.TryGetValue(token, out long count))
                         {
                             dict[token] = 1;
-                            // sum++;
                         }
                         else
                         {
-                            if (count + 1 > 100000)
-                            {
-                                dict[token] = 100000;
-                            }
-                            else
-                            {
-                                dict[token] = count + 1;
-                                // sum++;
-                            }
-                        //dict[token] = Math.Min(count + 1, 100000);
-                    }
-                    inToken = false;
+                            dict[token] = Math.Min(count + 1, 100000);
+                        }
+                        inToken = false;
                     }
                 }
             }
 
             if (inToken)
             {
-                string token = document.Substring(start);
+                string token = piece.Substring(start);
                 if (!dict.TryGetValue(token, out long count))
                 {
                     dict[token] = 1;
                 }
                 else
                 {
-                    if (count + 1 > 100000)
-                    {
-                        dict[token] = 100000;
-                    }
-                    else
-                    {
-                        dict[token] = count + 1;
-                    }
-                //dict[token] = Math.Min(count + 1, 100000);
+                    dict[token] = Math.Min(count + 1, 100000);
                 }
             }
 
-            //foreach (string token in tokens)
-            //{
-            //    if (!token.All(Char.IsLetterOrDigit))
-            //    {
-            //        Console.WriteLine(token);
-            //    }
-            //}
-
-            //foreach (KeyValuePair<string, int> pair in dict)
-            //{
-            //    Console.WriteLine($"Key: {pair.Key}, Value: {pair.Value}");
-            //}
-            //Console.WriteLine("--------------------------------------------------------------------");
-            //Console.WriteLine("\n"+flag+"\n");
-
-
-            //string finalResult = result.ToString();
-
-            //string[] tokens = finalResult.Split(new char[] { ' ', '?', ',', '.', '\n', '\"', ';', '=', ':', '\'', '%', '+', '-', '*', '/', '\\', '&', '`', '|', '<', '>', '(', ')', '[', ']', '#', '@', '$', '!', '~', '_', '\v', '\t', '\r', '\f', '\b', '\a', '\0' }, StringSplitOptions.RemoveEmptyEntries);
-
-
-
-            //return tokenser.ToArray();
-            //return (dict, sum);
             return dict;
         }
     }
