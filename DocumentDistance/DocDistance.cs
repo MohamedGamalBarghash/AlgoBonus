@@ -23,12 +23,12 @@ namespace DocumentDistance
         /// <returns>The angle (in degree) between the 2 docs</returns>
         /// 
 
-        public static double CalculateDistance(string doc1path, string doc2path)
+        public static double CalculateDistance(string doc1FilePath, string doc2FilePath)
         {
             // TODO comment the following line THEN fill your code here
             //throw new NotImplementedException
 
-            if (doc1path == doc2path)
+            if (doc1FilePath == doc2FilePath)
             {
                 return 0;
             }
@@ -50,14 +50,14 @@ namespace DocumentDistance
 
             tasks[0] = Task.Run(() => { 
                 //tokens1 = CreateFrequencyDict(doc1path);
-                tokens1 = CreateFrequencyDict(doc1path);
+                tokens1 = CreateFrequencyDict(doc1FilePath);
                 l1 = Math.Sqrt(tokens1.Values.Sum(v => v * v));
                 //foreach (var value in tokens1.Values)
                 //l1 += (long)value * value;
                 //l1 = Math.Sqrt(l1);
             });
             tasks[1] = Task.Run(() => { 
-                tokens2 = CreateFrequencyDict(doc2path);
+                tokens2 = CreateFrequencyDict(doc2FilePath);
                 l2 = Math.Sqrt(tokens2.Values.Sum(v => v * v));
                 //foreach (var value in tokens2.Values)
                 //l2 += (long)value * value;
