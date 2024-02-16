@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace docDistance
+namespace DocumentDistance
 {
     class DocDistance
     {
@@ -139,9 +138,9 @@ namespace docDistance
 
             Dictionary<string, long> dict = new Dictionary<string, long>();
 
-            if (doc.Length > 3000)
+            if (doc.Length > 5000)
             {
-                string[] pieces = SplitFile(doc, 7);
+                string[] pieces = SplitFile(doc, 6);
 
                 Task<Dictionary<string, long>>[] tasks = new Task<Dictionary<string, long>>[pieces.Length];
                 for (int i = 0; i < pieces.Length; i++)
@@ -153,17 +152,18 @@ namespace docDistance
                 // Wait for all tasks to complete
                 Task.WaitAll(tasks);
 
+                // Aggregate results from all tasks
                 foreach (var task in tasks)
                 {
                     foreach (var kvp in task.Result)
                     {
-                        if (dict.TryGetValue(kvp.Key, out long existingValue))
+                        if (!dict.ContainsKey(kvp.Key))
                         {
-                            dict[kvp.Key] = existingValue + kvp.Value;
+                            dict[kvp.Key] = kvp.Value;
                         }
                         else
                         {
-                            dict[kvp.Key] = kvp.Value;
+                            dict[kvp.Key] += kvp.Value;
                         }
                     }
                 }
@@ -176,8 +176,6 @@ namespace docDistance
             return dict;
         }
 
-
-        // Split file into pieces
         private static string[] SplitFile(string doc, int pieces)
         {
             List<string> result = new List<string>();
@@ -190,8 +188,6 @@ namespace docDistance
             return result.ToArray();
         }
 
-
-        // Process a single piece
         private static Dictionary<string, long> ProcessP(string piece)
         {
             Dictionary<string, long> dict = new Dictionary<string, long>();
