@@ -1,8 +1,11 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,11 +30,8 @@ namespace DocumentDistance
         {
             // TODO comment the following line THEN fill your code here
             //throw new NotImplementedException
-
             if (doc1FilePath == doc2FilePath)
-            {
                 return 0;
-            }
 
             // First File:
             Dictionary<string, long> tokens1 = new Dictionary<string, long> { };
@@ -145,28 +145,27 @@ namespace DocumentDistance
                 Task<Dictionary<string, long>>[] tasks = new Task<Dictionary<string, long>>[pieces.Length];
                 for (int i = 0; i < pieces.Length; i++)
                 {
-                    int index = i; // capture the loop variable
+                    int index = i; // lazem a7ot variable mo5talef 3ashan parallel
                     tasks[i] = Task.Run(() => ProcessP(pieces[index]));
                 }
 
-                // Wait for all tasks to complete
                 Task.WaitAll(tasks);
 
-                // Aggregate results from all tasks
-                foreach (var task in tasks)
+                foreach (var taskResult in tasks)
                 {
-                    foreach (var kvp in task.Result)
+                    foreach (var result in taskResult.Result)
                     {
-                        if (!dict.ContainsKey(kvp.Key))
+                        if (dict.ContainsKey(result.Key))
                         {
-                            dict[kvp.Key] = kvp.Value;
+                            dict[result.Key] += result.Value;
                         }
                         else
                         {
-                            dict[kvp.Key] += kvp.Value;
+                            dict[result.Key] = result.Value;
                         }
                     }
                 }
+
             }
             else
             {
@@ -179,14 +178,40 @@ namespace DocumentDistance
         private static string[] SplitFile(string doc, int pieces)
         {
             List<string> result = new List<string>();
-            int pieceLength = (int)Math.Ceiling((double)doc.Length / pieces);
-            for (int i = 0; i < doc.Length; i += pieceLength)
+            int pLen = (int)Math.Ceiling((double)doc.Length / pieces);
+            int lastIndex = 0;
+
+            for (int i = 0; i < doc.Length; i = lastIndex)
             {
-                int length = Math.Min(pieceLength, doc.Length - i);
-                result.Add(doc.Substring(i, length));
+                int length = Math.Min(pLen, doc.Length - i);
+
+                // shoof law a5r piece
+                if (i + length >= doc.Length)
+                {
+                    result.Add(doc.Substring(i));
+                    break;
+                }
+
+                // shoof a5r el kelma
+                int splitIndex = i + length;
+                while (splitIndex < doc.Length && char.IsLetterOrDigit(doc[splitIndex]))
+                {
+                    splitIndex++;
+                }
+
+
+                if (splitIndex == i + length)
+                {
+                    splitIndex = i + pLen;
+                }
+
+                result.Add(doc.Substring(i, splitIndex - i));
+                lastIndex = splitIndex;
             }
             return result.ToArray();
         }
+
+
 
         private static Dictionary<string, long> ProcessP(string piece)
         {
